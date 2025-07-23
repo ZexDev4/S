@@ -6,18 +6,22 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 ssl_context = ssl._create_unverified_context()
 
-async def fetch_instagram_profile(username):
+async def fetch_instagram_profile(username, method="GET", **kwargs):
     url = "https://i.instagram.com/api/v1/users/web_profile_info/"
     headers = {
         "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 243.1.0.14.111 (iPhone13,3; iOS 15_5; en_US; en-US; scale=3.00; 1170x2532; 382468104) NW/3",
     }
 
     async with aiohttp.ClientSession() as session:
-        async with session.get(url, params={"username": username}, headers=headers, ssl=ssl_context) as resp:
-            if resp.status == 200:
-                return await resp.json()
-            else:
-                return {"error": f"Failed with status {resp.status}", "details": await resp.text()}
+        async with session.request(
+            method,
+            url,
+            params={"username": username},
+            headers = {"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 243.1.0.14.111 (iPhone13,3; iOS 15_5; en_US; en-US; scale=3.00; 1170x2532; 382468104) NW/3"},
+            ssl=ssl_context,
+            **kwargs
+        ) as response:
+            return await response.text()
 
 @app.route("/api/instagram", methods=["GET"])
 def instagram_api():
